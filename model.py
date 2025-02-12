@@ -91,18 +91,19 @@ def pde(
             (input[:, 3] * ya0_std + ya0_mean) * ((input[:, 4] * w0_std + w0_mean) ** 2)
             * torch.cos((input[:, 4] * w0_std + w0_mean) * (t_std * input[:, 2] + t_mean))
         )
+        equ_2 = (
+            (v_std / t_std) * v_t
+            + (u * u_std + u_mean) * (v_std / x_std) * v_x
+            + (v * v_std + v_mean) * (v_std / y_std) * v_y
+            + (p_std / y_std) * p_y
+            - (1 / Re) * ((v_std / (x_std**2)) * v_xx + (v_std / (y_std**2)) * v_yy)
+            + force_inertie_
+        )
     else:
-        force_inertie_ = 0
-    equ_2 = (
-        (v_std / t_std) * v_t
-        + (u * u_std + u_mean) * (v_std / x_std) * v_x
-        + (v * v_std + v_mean) * (v_std / y_std) * v_y
-        + (p_std / y_std) * p_y
-        - (1 / Re) * ((v_std / (x_std**2)) * v_xx + (v_std / (y_std**2)) * v_yy)
-        + force_inertie_
-    )
+        equ_2 = torch.zeros(1,)
+   
     equ_3 = (u_std / x_std) * u_x + (v_std / y_std) * v_y
-    return equ_1, equ_2, equ_3, force_inertie_, torch.mean((input[:, 4] * w0_std + w0_mean))*(V_adim/L_adim)
+    return equ_1, equ_2, equ_3
 
 
 # Le NN
