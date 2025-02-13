@@ -67,8 +67,6 @@ def charge_data(hyper_param, param_adim):
     H_numpy = np.array(hyper_param["H"])
     f_numpy = 0.5 * (H_numpy / hyper_param["m"]) ** 0.5
     f = np.min(f_numpy)
-    time_tot = hyper_param["nb_period_plot"] / f  # la fréquence de l'écoulement
-    t_max = hyper_param["t_min"] + hyper_param["nb_period"] * time_tot
     t_max = hyper_param["t_min"] + hyper_param["nb_period"] / f
     for k in range(nb_simu):
         df = pd.read_csv("data/" + hyper_param["file"][k])
@@ -80,7 +78,7 @@ def charge_data(hyper_param, param_adim):
             & (df["Time"] > hyper_param["t_min"])
             & (df["Time"] < t_max)
             & (df["Points:2"] == 0.0)
-            & (df["Points:0"] ** 2 + df["Points:1"] ** 2 > (0.03 / 2) ** 2),
+            & (df["Points:0"] ** 2 + df["Points:1"] ** 2 > hyper_param['r_min'] ** 2),
             :,
         ].copy()
         df_modified.loc[:, "ya0"] = hyper_param["ya0"][k]
@@ -143,8 +141,8 @@ def charge_data(hyper_param, param_adim):
 
         # on ne garde que ceux loin de pi et 0
         df_modified_border = df_modified_border.loc[
-            (np.abs(df_modified_border["theta"]) > 0.05)
-            & (np.abs(np.pi - np.abs(df_modified_border["theta"])) > 0.05)
+            (np.abs(df_modified_border["theta"]) > hyper_param['theta_border_min'])
+            & (np.abs(np.pi - np.abs(df_modified_border["theta"])) > hyper_param['theta_border_min'])
         ]
         df_modified_border.loc[:, 'Pressure'] = - df_modified_border['Stress:1'] / np.sin(df_modified_border["theta"])
 
@@ -286,65 +284,30 @@ def charge_data(hyper_param, param_adim):
         w_0 = w0_norm_full[nb][0].item()
         y_0 = ya0_norm_full[nb][0].item()
         for time_ in torch.unique(t_norm_full[nb]):
-            print(time_)
-            # # les points autour du cylindre dans un rayon de hyper_param['rayon_proche']
-            # masque = (
-            #     (x_full[nb] ** 2 + y_full[nb] ** 2)
-            #     < ((hyper_param["rayon_close_cylinder"] / param_adim["L"]) ** 2)
-            # ) & (t_norm_full[nb] == time_)
-            # indices = torch.randperm(len(x_norm_full[nb][masque]))[
-            #     : hyper_param["nb_points_close_cylinder"]
-            # ]
-
-            # new_x = torch.stack(
-            #     (
-            #         x_norm_full[nb][masque][indices],
-            #         y_norm_full[nb][masque][indices],
-            #         t_norm_full[nb][masque][indices],
-            #         ya0_norm_full[nb][masque][indices],
-            #         torch.ones(hyper_param["nb_points_close_cylinder"]) * w_0,
-            #     ),
-            #     dim=1,
-            # )
-            # new_y = torch.stack(
-            #     (
-            #         u_norm_full[nb][masque][indices],
-            #         v_norm_full[nb][masque][indices],
-            #         p_norm_full[nb][masque][indices],
-            #     ),
-            #     dim=1,
-            # )
-            # X_train = torch.cat((X_train, new_x))
-            # U_train = torch.cat((U_train, new_y))
-
-            # Les points avec 'latin hypercube sampling'
             masque = t_norm_full[nb] == time_
-            if x_norm_full[nb][masque].size(0) > 0:
-                indices = torch.randperm(x_norm_full[nb][masque].size(0))[
-                    : hyper_param["nb_points"]
-                ]
-                new_x = torch.stack(
-                    (
-                        x_norm_full[nb][masque][indices],
-                        y_norm_full[nb][masque][indices],
-                        torch.ones(hyper_param["nb_points"]) * time_,
-                        torch.ones(hyper_param["nb_points"]) * y_0,
-                        torch.ones(hyper_param["nb_points"]) * w_0,
-                    ),
-                    dim=1,
-                )
-                new_y = torch.stack(
-                    (
-                        u_norm_full[nb][masque][indices],
-                        v_norm_full[nb][masque][indices],
-                        p_norm_full[nb][masque][indices],
-                    ),
-                    dim=1,
-                )
-                X_train = torch.cat((X_train, new_x))
-                U_train = torch.cat((U_train, new_y))
-            else : 
-                print('piche')
+            indices = torch.randperm(x_norm_full[nb][masque].size(0))[
+                : hyper_param["nb_points"]
+            ]
+            new_x = torch.stack(
+                (
+                    x_norm_full[nb][masque][indices],
+                    y_norm_full[nb][masque][indices],
+                    torch.ones(hyper_param["nb_points"]) * time_,
+                    torch.ones(hyper_param["nb_points"]) * y_0,
+                    torch.ones(hyper_param["nb_points"]) * w_0,
+                ),
+                dim=1,
+            )
+            new_y = torch.stack(
+                (
+                    u_norm_full[nb][masque][indices],
+                    v_norm_full[nb][masque][indices],
+                    p_norm_full[nb][masque][indices],
+                ),
+                dim=1,
+            )
+            X_train = torch.cat((X_train, new_x))
+            U_train = torch.cat((U_train, new_y))
     indices = torch.randperm(X_train.size(0))
     X_train = X_train[indices]
     U_train = U_train[indices]

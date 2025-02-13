@@ -39,6 +39,9 @@ def train(
     param_adim,
     nb_simu,
     force_inertie_bool,
+    u_border,
+    v_border,
+    p_border
 ):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     nb_it_tot = nb_epoch + len(train_loss["total"])
@@ -60,6 +63,8 @@ def train(
     weight_border = weight_border_init
     weight_data = weight_data_init
     weight_pde = weight_pde_init
+
+    border_verify = [k for k, test_true in enumerate([u_border, v_border, p_border]) if test_true]
 
     nb_batches = len(X_pde) // batch_size
     # batch_size = torch.tensor(batch_size, device=device, dtype=torch.int64)
@@ -167,7 +172,7 @@ def train(
             with torch.cuda.stream(stream_border):
                 # loss du border
                 pred_border = model(X_border_train)
-                loss_border_cylinder = loss(pred_border, U_border_train)  # (MSE)
+                loss_border_cylinder = loss(pred_border[:, border_verify], U_border_train[:, border_verify])  # (MSE)
             torch.cuda.synchronize()
             loss_totale = (
                 weight_data * loss_data
@@ -224,7 +229,7 @@ def train(
 
             # loss des bords
             pred_border_test = model(X_border_test)
-            loss_test_border = loss(pred_border_test, U_border_test)  # (MSE)
+            loss_test_border = loss(pred_border_test[:, border_verify], U_border_test[:, border_verify])  # (MSE)
 
             # loss totale
             loss_test = (
