@@ -41,7 +41,6 @@ def charge_data(hyper_param, param_adim):
     """
     # La data
     # On adimensionne la data
-
     time_start_charge = time.time()
     nb_simu = len(hyper_param["file"])
     x_full, y_full, t_full, ya0_full, w0_full = [], [], [], [], []
