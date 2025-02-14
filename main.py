@@ -6,7 +6,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Le code se lance sur {device}")
 
 
-folder_result_name = "18_huge_res_net"  # name of the result folder
+folder_result_name = "19_huge_no_inertia"  # name of the result folder
 
 # On utilise hyper_param_init uniquement si c'est un nouveau modèle
 
@@ -37,7 +37,7 @@ hyper_param_init = {
     "t_min": 6.5,
     "nb_period": 20,
     "nb_period_plot": 2,
-    "force_inertie_bool": True,
+    "force_inertie_bool": False,
     "nb_period": 20,
     "u_border": True,
     "v_border": False,
