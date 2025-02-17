@@ -6,7 +6,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Le code se lance sur {device}")
 
 
-folder_result_name = "19_huge_no_inertia"  # name of the result folder
+folder_result_name = "22_huge"  # name of the result folder
 
 # On utilise hyper_param_init uniquement si c'est un nouveau modèle
 
@@ -23,13 +23,13 @@ hyper_param_init = {
     "batch_size": 10000,
     "nb_points_pde": 200000,
     "Re": 100,
-    "lr_init": 3e-4,
+    "lr_init": 1e-4,
     "gamma_scheduler": 0.999,
     "nb_layers": 15,
     "nb_neurons": 64,
     "n_pde_test": 500,
     "n_data_test": 5000,
-    "nb_points": 144,
+    "nb_points": 100,
     "x_min": -0.06,
     "x_max": 0.06,
     "y_min": -0.06,
@@ -45,7 +45,7 @@ hyper_param_init = {
     "r_min": 0.026/2,
     'theta_border_min': 0.1,
     'is_res': True,
-    'nb_blocks': 5,  # Pour ResNet
+    'nb_blocks': 10,  # Pour ResNet
     'nb_layer_block': 3  # Pour ResNet
 }
 
